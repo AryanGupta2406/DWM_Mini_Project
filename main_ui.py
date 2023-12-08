@@ -148,6 +148,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 # Function for data visualization
+
+
 def visualize_data(df):
     st.write("### Visualization")
 
@@ -219,7 +221,32 @@ def visualize_data(df):
 
 
 
+def perform_olap_operations(df, dimensions, measures):
+    st.subheader("OLAP Operations")
 
+    # Display available dimensions and measures
+    st.write("**Available Dimensions:**", ", ".join(df.columns))
+    st.write("**Available Measures:**", ", ".join(df.select_dtypes(include='number').columns))
+
+    # User input for OLAP operations
+    operation = st.selectbox("Select OLAP Operation", ["Pivot Table"])
+
+    if operation == "Pivot Table":
+        try:
+            # User selects dimensions and measures for pivot table
+            pivot_dimensions = st.multiselect("Select Dimensions for Pivot Table", dimensions)
+            pivot_measures = st.multiselect("Select Measures for Pivot Table", measures)
+
+            # Create a pivot table
+            if pivot_dimensions and pivot_measures:
+                pivot_table = pd.pivot_table(df, values=pivot_measures, index=pivot_dimensions, aggfunc='sum')
+                st.write("### Pivot Table")
+                st.write(pivot_table)
+            else:
+                st.warning("Please select at least one dimension and one measure for the Pivot Table.")
+
+        except Exception as e:
+            st.error(f"An error occurred during OLAP operation: {e}")
 
 # Function for predictions
 # def make_predictions(df):
@@ -235,12 +262,21 @@ def main():
 
     if df is not None:
         # Sidebar with options
-        option = st.sidebar.selectbox("Select an option", ["Analysis", "Visualization", "Predictions"])
+        option = st.sidebar.selectbox("Select an option", ["Analysis", "Visualization", "Predictions", "OLAP"])
 
         if option == "Analysis":
             analyze_data(df)
         elif option == "Visualization":
             visualize_data(df)
+        elif option == "OLAP":
+            # User selects dimensions and measures for OLAP operations
+            dimensions = st.multiselect("Select Dimensions", df.columns)
+            measures = st.multiselect("Select Measures", df.select_dtypes(include='number').columns)
+
+            if dimensions or measures:
+                perform_olap_operations(df, dimensions, measures)
+            else:
+                st.warning("Please select at least one dimension or one measure.")
         # elif option == "Predictions":
         #     make_predictions(df)
 
